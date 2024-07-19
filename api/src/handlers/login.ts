@@ -5,7 +5,7 @@ import envConfig from "../config/dotenv"
 import enumConfig from "../config/enum"
 import bcrypt from "bcrypt"
 
-export async function loginAsync(req: Request, res: Response) {
+export async function signInAsync(req: Request, res: Response) {
     try {
         const { email, password } = req.body;
 
@@ -53,6 +53,13 @@ export async function loginAsync(req: Request, res: Response) {
                 message: "asdas"
             })
     }
+}
+
+export async function signOutAsync(req: Request, res: Response) {
+    console.log("signed out.")
+
+    res.status(204)
+    res.json("signed out");
 }
 
 async function generateJwtTokenAsync(user: any): Promise<string> {

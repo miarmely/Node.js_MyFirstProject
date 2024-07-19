@@ -1,16 +1,8 @@
-import { NextFunction, Request, Response } from "express"
+import { Request, Response } from "express"
 import userModel from "../db/models/user"
 import bcrypt from "bcrypt"
 import enumConfig from "../config/enum";
 import envConfig from "../config/dotenv"
-
-export async function authenticateAsync(
-    res: Request,
-    req: Response,
-    next: NextFunction): Promise<void> {
-    // pass other router
-    next();
-}
 
 export async function getAllUsersAsync(req: Request, res: Response) {
     const users = await userModel.find(

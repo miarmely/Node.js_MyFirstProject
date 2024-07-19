@@ -2,8 +2,7 @@ import userModel from "../../db/models/user"
 import envConfig from "../../config/dotenv"
 import passJwt from "passport-jwt"
 
-
-export async function strategyAsync(payload: any, done: passJwt.VerifiedCallback) {
+export async function authStrategyAsync(payload: any, done: passJwt.VerifiedCallback) {
     try {
         // get user by id
         const user = await userModel.findOne(
@@ -28,4 +27,14 @@ export async function strategyAsync(payload: any, done: passJwt.VerifiedCallback
         done(err, null);
         return;
     }
+}
+
+export async function signOutStrategyAsync(payload: any, done: passJwt.VerifiedCallback) {
+    // change expire time
+    const currentTimeInSec = Date.now() / 1000;
+    const newPayload = {
+        exp: currentTimeInSec - 1000
+    }
+
+    done(null, newPayload);
 }

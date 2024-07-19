@@ -1,5 +1,5 @@
 import express from "express"
-import { authenticateAsync, getAllUsersAsync, registerAsync } from "../handlers/users"
+import { getAllUsersAsync, registerAsync } from "../handlers/users"
 import auth from "../lib/auth"
 
 const router = express.Router();
@@ -8,7 +8,7 @@ const router = express.Router();
 router.post("/register", registerAsync);
 
 // with authentication
-router.all("*", auth.authenticate(), authenticateAsync);
+router.all("*", auth.authenticate());
 router.get("/display/all", getAllUsersAsync);
 
 export default router;
