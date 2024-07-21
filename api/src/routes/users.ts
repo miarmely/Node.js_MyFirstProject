@@ -1,6 +1,7 @@
 import express from "express"
 import { getAllUsersAsync, registerAsync } from "../handlers/users"
-import auth from "../lib/auth"
+import { validateTokenAsync } from "../lib/auth"
+
 
 const router = express.Router();
 
@@ -8,7 +9,7 @@ const router = express.Router();
 router.post("/register", registerAsync);
 
 // with authentication
-router.all("*", auth.authenticate());
+router.all("*", (req, res, next) => validateTokenAsync(req, res, next))
 router.get("/display/all", getAllUsersAsync);
 
 export default router;

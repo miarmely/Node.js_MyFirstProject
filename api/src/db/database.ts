@@ -1,5 +1,5 @@
 import mongoose from "mongoose"
-import envConfig from "../config/dotenv"
+
 
 let instance: Database;
 let mongoConnection: mongoose.Mongoose | null;

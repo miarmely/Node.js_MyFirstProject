@@ -1,46 +1,61 @@
-import pass from "passport"
-import passJwt from "passport-jwt"
-import envConfig from "../config/dotenv"
-import { authStrategyAsync, signOutStrategyAsync } from "./handlers/auth"
+import { NextFunction, Request, Response } from "express";
+import jwtModule from "jsonwebtoken"
+import myEnv from "../config/dotenv"
+import userModel from "../db/models/user"
+import httpCodes from "../config/enums/httpCodes"
 
-function auth() {
-    return {
-        initialize: () => {
-            // set strategy
-            const strategy = getAuthStrategy();
-            pass.use(strategy);
+//////////////////////// VARIABLES ////////////////////////
 
-            return pass.initialize();
-        },
-        authenticate: () => {
-            // set strategy
-            const strategy = getAuthStrategy();
-            pass.use(strategy);
+const JWT_SECRET_KEY: string = myEnv.JWT.SECRET_KEY;
+const JWT_EXPIRES_TIME_IN_SEC: number = myEnv.JWT.EXPIRES_TIME_IN_SEC;
+const ERROR_MSG: string = "invalid token";  // for use the validation.
 
-            return pass.authenticate("jwt", { session: false })
-        },
-        signOut: () => {
-            // set strategy
-            const strategy = getSignOutStrategy();
-            pass.use(strategy);
 
-            return pass.authenticate("jwt", { session: false })
-        }
+//////////////////////// FUNCTIONS ////////////////////////
+
+export function generateToken(payload: object): string {
+    const currentTimeInSec = Date.now() / 1000;
+
+    return jwtModule.sign(
+        payload,
+        JWT_SECRET_KEY,
+        { expiresIn: currentTimeInSec * JWT_EXPIRES_TIME_IN_SEC });;
+}
+
+export async function validateTokenAsync(
+    req: Request,
+    res: Response,
+    next: NextFunction): Promise<void> {
+    try {
+        const token = getTokenFromHeader(req);
+
+        // when payload is empty (THROW)
+        const payload = jwtModule.verify(token, JWT_SECRET_KEY);
+        if (typeof payload === "string")
+            throw new Error();
+
+        // when id not found (THROW)
+        const user = await userModel.findOne({ _id: payload.id })
+        if (!user)
+            throw new Error();
+
+        next();
+    }
+    catch (err: any) {
+        res.status(httpCodes.UNAUTHORIZED)
+            .json({
+                success: false,
+                message: ERROR_MSG
+            })
     }
 }
 
-function getAuthStrategy() {
-    return new passJwt.Strategy({
-        jwtFromRequest: passJwt.ExtractJwt.fromAuthHeaderAsBearerToken(),
-        secretOrKey: envConfig.JWT.SECRET_KEY
-    }, authStrategyAsync);
-}
+export function getTokenFromHeader(req: Request): string {
+    const token: string = req.headers.authentication === undefined ?
+        ""  // if undefined
+        : typeof req.headers.authentication === "string" ?
+            req.headers.authentication // if str
+            : req.headers.authentication[0];  // if array
 
-function getSignOutStrategy() {
-    return new passJwt.Strategy({
-        jwtFromRequest: passJwt.ExtractJwt.fromAuthHeaderAsBearerToken(),
-        secretOrKey: envConfig.JWT.SECRET_KEY
-    }, signOutStrategyAsync);
+    return token;
 }
-
-export default auth()
